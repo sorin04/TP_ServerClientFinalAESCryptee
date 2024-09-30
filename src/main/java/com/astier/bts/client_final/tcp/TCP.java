@@ -73,15 +73,26 @@ public class TCP extends Thread {
     public void deconnection() throws InterruptedException {
         if (this.isAlive()) {
             try {
-                fxmlCont.voyant.setFill(RED);
-                outBin.write(aesCbc.cryptage("exit".getBytes(StandardCharsets.UTF_8)));
-                marche = false;
-                Thread.sleep(1000);
-                outBin.close();
-                inBin.close();
-                socket.close();
-                fxmlCont.deconnecter.fire();
-            } catch (IOException ex) {
+                if (socket != null && !socket.isClosed()) {
+                    fxmlCont.voyant.setFill(RED);
+                    if (outBin != null) {
+                        outBin.write(aesCbc.cryptage("exit".getBytes(StandardCharsets.UTF_8)));
+                    }
+                    Thread.sleep(500);
+                    if (outBin != null) outBin.close();
+                    if (inBin != null) inBin.close();
+
+                    if (socket != null && !socket.isClosed()) {
+                        socket.close();
+                    }
+                    Platform.runLater(() -> fxmlCont.voyant.setFill(RED));
+
+                    fxmlCont.deconnecter.fire();
+                    marche = false;
+                    System.out.println("Déconnexion réussie.");
+                }
+            } catch (IOException | InterruptedException e) {
+                System.err.println("Erreur lors de la déconnexion: " + e.getMessage());
             }
         }
     }
